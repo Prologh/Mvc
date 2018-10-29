@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MvcSandbox.AuthorizationMiddleware;
+using MvcSandbox.Controllers;
 
 namespace MvcSandbox
 {
@@ -27,22 +28,7 @@ namespace MvcSandbox
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
-            app.UseEndpointRouting(builder =>
-            {
-                builder.MapGet(
-                    requestDelegate: WriteEndpoints,
-                    pattern: "/endpoints",
-                    displayName: "Home");
-
-                builder.MapMvcRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-
-                builder.MapMvcControllers();
-                builder.MapRazorPages();
-
-                builder.MapHealthChecks("/healthz");
-            });
+            app.UseEndpointRouting(ConfigureRouting);
 
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
@@ -50,6 +36,40 @@ namespace MvcSandbox
             app.UseAuthorization();
 
             app.UseEndpoint();
+        }
+
+        // What are you registering?
+        // - Assembly
+        // - Type
+        // - All assemblies?
+        // How is it configured?
+        // - attributed
+        // - non-attributed
+        // 'Discovered' Routable things?
+        // - Controllers
+        // - Pages
+        // - Routable Components
+        // - SignalR?
+        private static void ConfigureRouting(IEndpointRouteBuilder builder)
+        {
+            builder.MapGet(
+                requestDelegate: WriteEndpoints,
+                pattern: "/endpoints",
+                displayName: "Home");
+
+            builder.MapMvcRoute(
+                name: "default",
+                template: "{controller=Home}/{action=Index}/{id?}");
+
+            builder.MapAssemblyFromType<HomeController>();
+
+            builder.MapAllMyShit();
+            builder.MapRoutableComponents();
+
+            builder.MapMvcControllers();
+            builder.MapRazorPages();
+
+            builder.MapHealthChecks("/healthz");
         }
 
         private static Task WriteEndpoints(HttpContext httpContext)
